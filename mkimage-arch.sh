@@ -18,24 +18,25 @@ DATE=$1
 echo Building Arch Linux container for ${DATE}...
 
 INSTARCH_KEY=051680AC
-ROOTFS=$(mktemp -d /tmp/rootfs-archlinux-XXXXXXXXXX)
+ROOTFS=$(mktemp -d ${TMPDIR:-/var/tmp}/rootfs-archlinux-XXXXXXXXXX)
 chmod 755 $ROOTFS
 
 # packages to ignore for space savings
 PKGIGNORE=linux,jfsutils,lvm2,groff,man-db,man-pages,mdadm,pciutils,pcmciautils,reiserfsprogs,s-nail,xfsprogs
 
 expect <<EOF
+  set send_slow {1 .1}
+  proc send {ignore arg} {
+      sleep .1
+      exp_send -s -- \$arg
+  }
   set timeout 60
-  set send_slow {1 1}
+
   spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base sudo haveged --ignore $PKGIGNORE
   expect {
-    "Install anyway?" { send n\r; exp_continue }
-    "(default=all)" { send \r; exp_continue }
-    "Proceed with installation?" { send "\r"; exp_continue }
-    "skip the above package" {send "y\r"; exp_continue }
-    "checking" { exp_continue }
-    "loading" { exp_continue }
-    "installing" { exp_continue }
+      -exact "anyway? \[Y/n\] " { send -- "n\r"; exp_continue }
+      -exact "(default=all): " { send -- "\r"; exp_continue }
+      -exact "installation? \[Y/n\]" { send -- "y\r"; exp_continue }
   }
 EOF
 
@@ -45,7 +46,7 @@ arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pkill havege
 arch-chroot $ROOTFS /bin/sh -c "pacman-key -r ${INSTARCH_KEY} && pacman-key --lsign-key ${INSTARCH_KEY}"
 echo -e "[instarch]\nServer = http://instarch.codekoala.com/\$arch/" >> $ROOTFS/etc/pacman.conf
 
-arch-chroot $ROOTFS /bin/sh -c "ln -s /usr/share/zoneinfo/UTC /etc/localtime"
+arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
 echo 'en_US.UTF-8 UTF-8' > $ROOTFS/etc/locale.gen
 arch-chroot $ROOTFS locale-gen
 arch-chroot $ROOTFS /bin/sh -c 'echo "Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist'
