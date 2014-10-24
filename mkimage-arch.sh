@@ -51,8 +51,14 @@ echo 'en_US.UTF-8 UTF-8' > $ROOTFS/etc/locale.gen
 arch-chroot $ROOTFS locale-gen
 arch-chroot $ROOTFS /bin/sh -c 'echo "Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist'
 
+# remove locale information
+arch-chroot $ROOTFS /bin/sh -c 'pacman -Sy --noconfirm localepurge && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman -R --noconfirm localepurge'
+
 # clean up downloaded packages
 rm -rf $ROOTFS/var/cache/pacman/pkg/*
+
+# clean up manpages and docs
+rm -rf $ROOTFS/usr/share/{man,doc}
 
 # udev doesn't work in containers, rebuild /dev
 DEV=$ROOTFS/dev
