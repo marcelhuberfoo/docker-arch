@@ -40,10 +40,12 @@ expect <<EOF
   }
 EOF
 
-arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pkill haveged; pacman -Rs --noconfirm haveged; pacman-key --populate archlinux"
+arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pkill haveged; pacman -Rs --noconfirm haveged; pacman-key --populate archlinux; pkill gpg-agent"
 
 # add my repository
-arch-chroot $ROOTFS /bin/sh -c "pacman-key -r ${INSTARCH_KEY} && pacman-key --lsign-key ${INSTARCH_KEY}"
+mkdir -p $ROOTFS/root/.gnupg
+touch $ROOTFS/root/.gnupg/dirmngr_ldapservers.conf
+arch-chroot $ROOTFS /bin/sh -c "pacman-key -r ${INSTARCH_KEY} && pacman-key --lsign-key ${INSTARCH_KEY}; pkill dirmngr; pkill gpg-agent"
 echo -e "[instarch]\nServer = http://instarch.codekoala.com/\$arch/" >> $ROOTFS/etc/pacman.conf
 
 arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
