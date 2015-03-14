@@ -22,7 +22,32 @@ ROOTFS=$(mktemp -d ${TMPDIR:-/var/tmp}/rootfs-archlinux-XXXXXXXXXX)
 chmod 755 $ROOTFS
 
 # packages to ignore for space savings
-PKGIGNORE=linux,jfsutils,lvm2,groff,man-db,man-pages,mdadm,pciutils,pcmciautils,reiserfsprogs,s-nail,xfsprogs
+PKGIGNORE=(
+    cryptsetup
+    device-mapper
+    dhcpcd
+    groff
+    iproute2
+    jfsutils
+    linux
+    lvm2
+    man-db
+    man-pages
+    mdadm
+    nano
+    netctl
+    openresolv
+    pciutils
+    pcmciautils
+    reiserfsprogs
+    s-nail
+    systemd-sysvcompat
+    usbutils
+    xfsprogs
+)
+IFS=','
+PKGIGNORE="${PKGIGNORE[*]}"
+unset IFS
 
 expect <<EOF
   set send_slow {1 .1}
@@ -88,12 +113,12 @@ ln -sf $SYSD/systemd-journald.service $SYSD/sysinit.target.wants/
 
 echo "Compressing filesystem..."
 UNTEST=arch-rootfs-untested.tar.xz
-tar --xz -f $UNTEST --numeric-owner -C $ROOTFS -c .
+tar --xz -f $UNTEST --numeric-owner --xattrs --acls -C $ROOTFS -c .
 rm -rf $ROOTFS
 
 echo "Testing filesystem..."
 cat $UNTEST | docker import - archtest
-docker run -ti --rm archtest echo Success.
+docker run -t --rm archtest echo Success.
 docker rmi archtest
 
 echo "Approving filesystem..."
