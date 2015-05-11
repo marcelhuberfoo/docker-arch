@@ -27,7 +27,6 @@ PKGIGNORE=(
     device-mapper
     dhcpcd
     groff
-    iproute2
     jfsutils
     linux
     lvm2
