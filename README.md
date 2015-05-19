@@ -1,16 +1,14 @@
 ArchLinux Container
 ===================
 
-Docker build for a basic Arch Linux image with sudo and my custom repository
-(http://instarch.codekoala.com/). I update the container regularly.
+Docker build for a basic Arch Linux image with gosu. I update the container regularly.
 
-systemd
--------
+systemd - *not yet functional*
+------------
 
 It's possible to use systemd with this container if you enable services in your
 Dockerfile and run your container with something like:
 
-    docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro codekoala/arch /usr/bin/init
+    docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro marcelhuberfoo/arch /usr/lib/systemd/systemd
 
-To stop the container, you can enable SSH, login remotely, and run ``systemctl
-poweroff``.
+To stop the container, you could execute ``systemctl poweroff``.
