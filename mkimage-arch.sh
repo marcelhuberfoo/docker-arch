@@ -17,7 +17,6 @@ DATE=$1
 
 echo Building Arch Linux container for ${DATE}...
 
-INSTARCH_KEY=051680AC
 ROOTFS=$(mktemp -d ${TMPDIR:-/var/tmp}/rootfs-archlinux-XXXXXXXXXX)
 chmod 755 $ROOTFS
 
@@ -27,6 +26,7 @@ PKGIGNORE=(
     device-mapper
     dhcpcd
     groff
+    iproute2
     jfsutils
     linux
     lvm2
@@ -35,7 +35,6 @@ PKGIGNORE=(
     mdadm
     nano
     netctl
-    openresolv
     pciutils
     pcmciautils
     reiserfsprogs
@@ -56,7 +55,8 @@ expect <<EOF
   }
   set timeout 60
 
-  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base sudo haveged --ignore $PKGIGNORE
+  #spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base haveged systemd --ignore $PKGIGNORE
+  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base haveged --ignore $PKGIGNORE
   expect {
       -exact "anyway? \[Y/n\] " { send -- "n\r"; exp_continue }
       -exact "(default=all): " { send -- "\r"; exp_continue }
@@ -64,24 +64,28 @@ expect <<EOF
   }
 EOF
 
+arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' /etc/pacman.conf"
 arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pkill haveged; pacman -Rs --noconfirm haveged; pacman-key --populate archlinux; pkill gpg-agent"
 
-# add my repository
-mkdir -p $ROOTFS/root/.gnupg
-touch $ROOTFS/root/.gnupg/dirmngr_ldapservers.conf
-arch-chroot $ROOTFS /bin/sh -c "pacman-key -r ${INSTARCH_KEY} && pacman-key --lsign-key ${INSTARCH_KEY}; pkill dirmngr; pkill gpg-agent"
-echo -e "[instarch]\nServer = http://instarch.codekoala.com/\$arch/" >> $ROOTFS/etc/pacman.conf
-
-arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
+arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/Europe/Zurich /etc/localtime"
 echo 'en_US.UTF-8 UTF-8' > $ROOTFS/etc/locale.gen
 arch-chroot $ROOTFS locale-gen
-arch-chroot $ROOTFS /bin/sh -c 'echo "Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist'
+#arch-chroot $ROOTFS /bin/sh -c 'echo "Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist'
+
+# add my repository
+#echo -e "[archlinuxfr]\nSigLevel = Optional TrustAll\nServer = http://repo.archlinux.fr/\$arch/" >> $ROOTFS/etc/pacman.conf
+#echo -e "[ownrepo]\nSigLevel = Optional TrustAll\nServer = file:///root" >> $ROOTFS/etc/pacman.conf
+cp localepurge-* $ROOTFS/root
+#arch-chroot $ROOTFS /bin/sh -c 'cd /root && repo-add --new --quiet ownrepo.db.tar.gz localepurge-*; repo-add --files --new --quiet ownrepo.files.tar.gz localepurge-*'
 
 # remove locale information
-arch-chroot $ROOTFS /bin/sh -c 'pacman -Sy --noconfirm localepurge && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman -R --noconfirm localepurge'
+#arch-chroot $ROOTFS /bin/sh -c 'pacman -Sy --noconfirm localepurge && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman -R --noconfirm localepurge'
+arch-chroot $ROOTFS /bin/sh -c 'pacman -U --noconfirm /root/localepurge-*.tar.xz && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman -R --noconfirm localepurge'
 
 # clean up downloaded packages
-rm -rf $ROOTFS/var/cache/pacman/pkg/*
+arch-chroot $ROOTFS /bin/sh -c 'printf "y\\ny\\n" | pacman -Scc'
+#rm -rf $ROOTFS/var/cache/pacman/pkg/*
+#rm -f $ROOTFS/root/localepurge-* $ROOTFS/root/ownrepo.*
 
 # clean up manpages and docs
 rm -rf $ROOTFS/usr/share/{man,doc}
@@ -117,7 +121,7 @@ rm -rf $ROOTFS
 
 echo "Testing filesystem..."
 cat $UNTEST | docker import - archtest
-docker run -t --rm archtest echo Success.
+docker run -t --rm archtest echo "Hello from Image"
 docker rmi archtest
 
 echo "Approving filesystem..."
