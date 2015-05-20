@@ -5,7 +5,8 @@ set -e
 DATE=$(date +"%Y.%m.%d")
 
 # remove any existing root filesystem from the repo history
-git filter-branch -f --tree-filter 'rm -f arch-rootfs*' --prune-empty master
+git filter-branch -f --tag-name-filter cat --commit-filter 'git_commit_non_empty_tree "$@"' --tree-filter 'rm -f arch-rootfs*' --prune-empty master
+git reflog expire --expire=now --all &&  git repack -ad && git gc --aggressive --prune=now
 
 # build an updated root filesystem
 sudo ./mkimage-arch.sh ${DATE}
