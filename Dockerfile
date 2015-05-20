@@ -1,7 +1,7 @@
 FROM scratch
 MAINTAINER Marcel Huber <marcelhuberfoo@gmail.com>
 
-ADD arch-rootfs-2015.05.19.tar.xz /
+ADD arch-rootfs-2015.05.20.tar.xz /
 
 # allow use of gosu to execute commands as different user
 RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
