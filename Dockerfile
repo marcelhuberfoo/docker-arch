@@ -10,10 +10,11 @@ RUN curl -o /usr/local/bin/gosu -sSL https://github.com/tianon/gosu/releases/dow
     gpg --verify /usr/local/bin/gosu.asc && rm /usr/local/bin/gosu.asc && \
     chmod +x /usr/local/bin/gosu
 
-ENV UID=1000 GID=100 LANG=en_US.utf8
+ENV UID=654321 GID=654321 UNAME=docky GNAME=docky LANG=en_US.utf8
 # add non root user as convenience
-RUN useradd --uid $UID --gid $GID --key UMASK=0002 --create-home --comment "Non root user" user
-RUN gosu user bash -c 'echo umask 0002 >> $HOME/.bashrc'
+RUN groupadd -g $GID $GNAME && \
+    useradd --uid $UID --gid $GID --key UMASK=0002 --create-home --comment "docker user" $UNAME
+RUN gosu $UNAME bash -c 'echo umask 0002 >> $HOME/.bashrc'
 
 CMD ["/bin/bash"]
 
