@@ -35,13 +35,24 @@ HOME=/root
 
 This image provides a user and group `docky` to run programs as user `docky`. It is best used with [`gosu`][gosu], as it allows to handle signals of the started process properly within the container.
 
-If you map in a volume, permissions on the host folder must allow user or group `docky` to write to it. I recommend adding at least a group `docky` with GID of `654321` to your host system and change the group of the folder to `docky`. Don't forget to add your user to the `docky` group.
+If you map in a volume, permissions on the host folder must allow user or group `docky` to write to it. I recommend adding at least a group `docky` with GID of `654321` to your host system and change the group of the folder to `docky`. Don't forget to add yourself to the `docky` group.
 The user `docky` has a `UID` of `654321` and a `GID` of `654321` which should not interfere with existing ids on regular Linux systems.
 
+Add user and group docky, group might be sufficient:
 ```bash
-# To give permissions to the entire project directory, do:
+groupadd -g 654321 docky
+useradd --system --uid 654321 --gid docky --shell '/sbin/nologin' docky
+```
+
+Add yourself to the docky group:
+```bash
+gpasswd --add myself docky
+```
+
+Set group permissions to the entire project directory:
+```bash
 chmod -R g+w /tmp/my-data
-chgrp -R 654321 /tmp/my-data
+chgrp -R docky /tmp/my-data
 ```
 
 ## systemd - *not yet functional*
@@ -52,8 +63,10 @@ chgrp -R 654321 /tmp/my-data
 
 Enabled services would be started in your container if run with something like:
 
-    docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-           marcelhuberfoo/arch /usr/lib/systemd/systemd
+```bash
+docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+       marcelhuberfoo/arch /usr/lib/systemd/systemd
+```
 
 To stop the container, you could execute ``systemctl poweroff``.
 
