@@ -1,6 +1,6 @@
 # ArchLinux Container
 
-Docker build for a basic Arch Linux image with gosu. I update the container regularly.
+Docker build for a basic [Arch Linux docker image][archimage] with gosu. I update the container regularly.
 
 This image is built from scratch.
 
@@ -9,7 +9,7 @@ This image is built from scratch.
 This docker image is build from scratch with a minimal [Arch Linux][archlinux] installation.
 It provides several key features:
 
-* A non-root user and group `docky` (uid:gid=654321:654321) for executing programs inside the container.
+* A non-root user and group `docky` for executing programs inside the container.
 * A umask of 0002 for user `docky`.
 * Exported variables `UNAME`, `GNAME`, `UID` and `GID` to make use of the user settings from within scripts.
 * Timezone (`/etc/localtime`) is linked to `Europe/Zurich`, adjust if required in a derived image.
@@ -33,13 +33,10 @@ HOME=/root
 
 ## Permissions
 
-This image provides a user and group `docky` to run programs as if you like. It is best used with [`gosu`][gosu], as it allows to handle signals properly within the container.
+This image provides a user and group `docky` to run programs as user `docky`. It is best used with [`gosu`][gosu], as it allows to handle signals of the started process properly within the container.
 
-This means that if you map in a volume, the permissions must allow this user to write to it. 
-This user has a `UID` of `654321` and a `GID` of `654321` which should not interfere with existing ids on regular
-Linux systems. You have to ensure that such a `UID:GID` combination is allowed to write to
-your mapped volume. The easiest way is to add group write permissions for the mapped volume
-and change the group id of the volume to 654321.
+If you map in a volume, permissions on the host folder must allow user or group `docky` to write to it. I recommend adding at least a group `docky` with GID of `654321` to your host system and change the group of the folder to `docky`. Don't forget to add your user to the `docky` group.
+The user `docky` has a `UID` of `654321` and a `GID` of `654321` which should not interfere with existing ids on regular Linux systems.
 
 ```bash
 # To give permissions to the entire project directory, do:
@@ -49,8 +46,11 @@ chgrp -R 654321 /tmp/my-data
 
 ## systemd - *not yet functional*
 
-It's possible to use systemd with this container if you enable services in your
-Dockerfile and run your container with something like:
+**Note:** It is not yet possible to use systemd with this container due to docker limitations (at least with versions <= 1.6.2). *Therefor, the package `systemd` is not installed.*
+
+### If it worked
+
+Enabled services would be started in your container if run with something like:
 
     docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
            marcelhuberfoo/arch /usr/lib/systemd/systemd
@@ -59,3 +59,4 @@ To stop the container, you could execute ``systemctl poweroff``.
 
 [archlinux]: https://www.archlinux.org
 [gosu]: https://github.com/tianon/gosu
+[archimage]: https://registry.hub.docker.com/u/marcelhuberfoo/arch/
