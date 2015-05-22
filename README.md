@@ -1,4 +1,4 @@
-# ArchLinux Container
+# ArchLinux Container [![](https://badge.imagelayers.io/marcelhuberfoo/arch.svg)](https://imagelayers.io/?images=marcelhuberfoo/arch 'Get your own badge on imagelayers.io')
 
 Docker build for a basic [Arch Linux docker image][archimage] with gosu. I update the container regularly.
 
