@@ -18,4 +18,3 @@ RUN gosu $UNAME bash -c 'echo umask 0002 >> $HOME/.bashrc'
 
 CMD ["/bin/bash"]
 
-# vim:ft=Dockerfile:
