@@ -1,7 +1,7 @@
 FROM scratch
 MAINTAINER Marcel Huber <marcelhuberfoo@gmail.com>
 
-ADD arch-rootfs-2015.08.13.tar.xz /
+ADD arch-rootfs-20150921_4.1.6-1.tar.xz /
 
 # allow use of gosu to execute commands as different user
 RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
@@ -18,4 +18,3 @@ RUN gosu $UNAME bash -c 'echo umask 0002 >> $HOME/.bashrc'
 
 CMD ["/bin/bash"]
 
-# vim:ft=Dockerfile:
