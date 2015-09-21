@@ -21,10 +21,3 @@ sed "s/TAG/${IMGTAG}/" Dockerfile.tpl > Dockerfile
 git add Dockerfile && git commit -m "Update Dockerfile (${IMGTAG})"
 git add arch-rootfs-${IMGTAG}.tar.xz && git commit -m "Update rootfs (${IMGTAG})"
 git tag -m "Based on kernel $KERNELTAG and packages of $DATETAG" $IMGTAG
-echo "Push to remote (y*|n)?"
-read v
-if [ "$v" = "n" -o "$v" = "N" ]; then
-  echo "Push to remote skipped.";
-else
-  eval "$n";
-fi
