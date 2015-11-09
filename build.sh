@@ -4,7 +4,7 @@ set -e
 
 DATETAG=$(date +"%Y%m%d")
 KERNELTAG=$(pacman -Q linux | cut -d' ' -f2)
-IMGTAG=${DATETAG}_${KERNELTAG}
+IMGTAG=${DATETAG}-${KERNELTAG}
 
 # remove any existing root filesystem from the repo history
 git tag -d $(git tag -l) || true
