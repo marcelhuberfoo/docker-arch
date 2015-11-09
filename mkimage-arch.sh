@@ -65,7 +65,7 @@ expect <<EOF
 EOF
 
 arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' /etc/pacman.conf"
-arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pkill haveged; pacman -Rs --noconfirm haveged; pacman-key --populate archlinux; pkill gpg-agent"
+arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pacman-key --populate archlinux; pkill haveged; pkill gpg-agent; pacman -Rs --noconfirm haveged"
 
 arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
 echo 'en_US.UTF-8 UTF-8' > $ROOTFS/etc/locale.gen

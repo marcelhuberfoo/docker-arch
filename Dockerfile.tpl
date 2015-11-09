@@ -12,7 +12,9 @@ ENV UID=654321 GID=654321 UNAME=docky GNAME=docky LANG=en_US.utf8
 # add non root user as convenience
 RUN groupadd -g $GID $GNAME && \
     useradd --uid $UID --gid $GID --key UMASK=0002 --create-home --comment "docker user" $UNAME
-RUN gosu $UNAME bash -c 'echo umask 0002 >> $HOME/.bashrc'
+USER $UNAME
+RUN bash -l -c 'echo umask 0002 >> $HOME/.bashrc'
+USER root
 
 CMD ["/bin/bash"]
 
