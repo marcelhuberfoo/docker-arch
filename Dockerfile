@@ -5,7 +5,8 @@ ADD arch-rootfs-20151109-4.2.5-1.tar.xz /
 
 # allow use of gosu to execute commands as different user
 ADD https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 /usr/local/bin/gosu
-RUN chmod 0555 /usr/local/bin/gosu
+RUN ls -la /usr/local/bin && chmod 0555 /usr/local/bin/gosu || true
+RUN ls -la /usr/local/bin
 
 ENV UID=654321 \
     GID=654321 \
