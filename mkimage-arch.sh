@@ -55,8 +55,7 @@ expect <<EOF
   }
   set timeout 60
 
-  #spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base haveged systemd --ignore $PKGIGNORE
-  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS base haveged --ignore $PKGIGNORE
+  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS pacman grep shadow procps-ng sed haveged --ignore $PKGIGNORE
   expect {
       -exact "anyway? \[Y/n\] " { send -- "n\r"; exp_continue }
       -exact "(default=all): " { send -- "\r"; exp_continue }
@@ -81,40 +80,21 @@ arch-chroot $ROOTFS /bin/sh -c 'printf "y\\ny\\n" | pacman -Scc'
 
 # clean up manpages and docs
 rm -rf $ROOTFS/usr/share/{man,doc}
-
-# udev doesn't work in containers, rebuild /dev
-DEV=$ROOTFS/dev
-rm -rf $DEV
-mkdir -p $DEV
-mknod -m 666 $DEV/null c 1 3
-mknod -m 666 $DEV/zero c 1 5
-mknod -m 666 $DEV/random c 1 8
-mknod -m 666 $DEV/urandom c 1 9
-mkdir -m 755 $DEV/pts
-mkdir -m 1777 $DEV/shm
-mknod -m 666 $DEV/tty c 5 0
-mknod -m 600 $DEV/console c 5 1
-mknod -m 666 $DEV/tty0 c 4 0
-mknod -m 666 $DEV/full c 1 7
-mknod -m 600 $DEV/initctl p
-mknod -m 666 $DEV/ptmx c 5 2
-ln -sf /proc/self/fd $DEV/fd
-
-# make systemd a bit happier (disable everything except journald)
-find $ROOTFS -type l -iwholename "*.wants*" -delete
-SYSD=/usr/lib/systemd/system
-ln -sf $SYSD/systemd-journald.socket $SYSD/sockets.target.wants/
-ln -sf $SYSD/systemd-journald.service $SYSD/sysinit.target.wants/
+rm -f $ROOTFS/root/localepurge-*
+rm -f $ROOTFS/var/lib/pacman/sync/*.db
 
 echo "Compressing filesystem..."
-UNTEST=arch-rootfs-untested.tar.xz
-tar --xz -f $UNTEST --numeric-owner --xattrs --acls -C $ROOTFS -c .
+UNTEST=arch-rootfs-untested.tar
+tar --create --file $UNTEST --utc --numeric-owner --xattrs --acls -C $ROOTFS . >/dev/null
 rm -rf $ROOTFS
 
 echo "Testing filesystem..."
 cat $UNTEST | docker import - archtest
-docker run -t --rm archtest echo "Hello from Image"
+docker run -t --name arch_cont archtest echo "Hello from Image"
+docker rm arch_cont
 docker rmi archtest
 
 echo "Approving filesystem..."
-mv $UNTEST arch-rootfs-${IMGTAG}.tar.xz
+mv $UNTEST ${UNTEST/untested/${IMGTAG}}
+xz --compress --extreme --threads=0 ${UNTEST/untested/${IMGTAG}}
+
