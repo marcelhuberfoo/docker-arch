@@ -3,10 +3,12 @@ MAINTAINER Marcel Huber <marcelhuberfoo@gmail.com>
 
 ADD arch-rootfs-20151109-4.2.5-1.tar.xz /
 
+USER root
+
 # allow use of gosu to execute commands as different user
+RUN bash -l -c 'mkdir -p /usr/local/bin'
 ADD https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 /usr/local/bin/gosu
-RUN ls -la /usr/local/bin && chmod 0555 /usr/local/bin/gosu || true
-RUN ls -la /usr/local/bin
+RUN bash -l -c '[ -f /usr/local/bin/gosu ] && chmod 0555 /usr/local/bin/gosu'
 
 ENV UID=654321 \
     GID=654321 \
