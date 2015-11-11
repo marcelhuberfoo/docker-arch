@@ -1,7 +1,7 @@
 FROM scratch
 MAINTAINER Marcel Huber <marcelhuberfoo@gmail.com>
 
-ADD arch-rootfs-20151110-4.2.5-1.tar.xz /
+ADD arch-rootfs-20151111-4.2.5-1.tar.xz /
 
 USER root
 
@@ -19,7 +19,9 @@ ENV UID=654321 \
 RUN groupadd -g $GID $GNAME && \
     useradd --uid $UID --gid $GID --key UMASK=0002 --create-home --comment "docker user" $UNAME
 USER $UNAME
-RUN bash -l -c 'echo -e "umask 0002\ncd \$HOME\n" >> $HOME/.bashrc'
+# remove section which disables executing the script in non-interactive mode
+RUN sed -ri -e '/If not.*/ d' -e '/\*i\*/ d' $HOME/.bashrc
+RUN echo -e "umask 0002\ncd \$HOME\n" >> $HOME/.bashrc
 USER root
 
 CMD ["/bin/bash"]
