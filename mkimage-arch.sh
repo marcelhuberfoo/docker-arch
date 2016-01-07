@@ -63,7 +63,7 @@ expect <<EOF
   }
 EOF
 
-arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(Color|TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' -e ':a;N;$!ba' -e 's|#(\[multilib\]\n)#([^\n]*\n)|\1\2|' /etc/pacman.conf"
+arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(Color|TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' -e ':a;N;\$!ba' -e 's|#(\[multilib\]\n)#([^\n]*\n)|\1\2|' /etc/pacman.conf"
 arch-chroot $ROOTFS /bin/sh -c "pacman-key --init; pacman-key --populate archlinux; pkill gpg-agent"
 
 arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
