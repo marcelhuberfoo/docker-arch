@@ -18,6 +18,6 @@ sudo ./mkimage-arch.sh ${IMGTAG}
 sed "s/TAG/${IMGTAG}/" Dockerfile.tpl > Dockerfile
 
 # commit the changes
-git add Dockerfile && git commit -m "Update Dockerfile (${IMGTAG})"
-git add arch-rootfs-${IMGTAG}.tar.xz && git commit -m "Update rootfs (${IMGTAG})"
+git add Dockerfile && git commit -m "Update Dockerfile (${IMGTAG})" || true
+git add arch-rootfs-${IMGTAG}.tar.xz && git commit -m "Update rootfs (${IMGTAG})" || true
 git tag -m "Based on kernel $KERNELTAG and packages of $DATETAG" $IMGTAG
