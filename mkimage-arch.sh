@@ -55,7 +55,7 @@ expect <<EOF
   }
   set timeout 60
 
-  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS pacman grep shadow procps-ng sed haveged --ignore $PKGIGNORE
+  spawn pacstrap -C ./mkimage-arch-pacman.conf -c -d -G -i $ROOTFS pacman grep shadow procps-ng sed --ignore $PKGIGNORE
   expect {
       -exact "anyway? \[Y/n\] " { send -- "n\r"; exp_continue }
       -exact "(default=all): " { send -- "\r"; exp_continue }
@@ -63,8 +63,8 @@ expect <<EOF
   }
 EOF
 
-arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' /etc/pacman.conf"
-arch-chroot $ROOTFS /bin/sh -c "haveged -w 1024; pacman-key --init; pacman-key --populate archlinux; pkill haveged; pkill gpg-agent; pacman -Rs --noconfirm haveged"
+arch-chroot $ROOTFS /bin/sh -c "sed -i -r -e 's/^#?(Color|TotalDownload|VerbosePkgLists)/\1/g' -e'/TotalDownload/ a\ILoveCandy' -e ':a;N;$!ba' -e 's|#(\[multilib\]\n)#([^\n]*\n)|\1\2|' /etc/pacman.conf"
+arch-chroot $ROOTFS /bin/sh -c "pacman-key --init; pacman-key --populate archlinux; pkill gpg-agent"
 
 arch-chroot $ROOTFS /bin/sh -c "ln -sf /usr/share/zoneinfo/UTC /etc/localtime"
 echo 'en_US.UTF-8 UTF-8' > $ROOTFS/etc/locale.gen
@@ -73,7 +73,7 @@ arch-chroot $ROOTFS locale-gen
 cp localepurge-* $ROOTFS/root
 
 # remove locale information
-arch-chroot $ROOTFS /bin/sh -c 'pacman -U --noconfirm /root/localepurge-*.tar.xz && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman -R --noconfirm localepurge'
+arch-chroot $ROOTFS /bin/sh -c 'pacman --upgrade --noconfirm /root/localepurge-*.tar.xz && sed -i "/NEEDSCONFIGFIRST/d" /etc/locale.nopurge && localepurge && pacman --remove --nosave --noconfirm localepurge'
 
 # clean up downloaded packages
 arch-chroot $ROOTFS /bin/sh -c 'printf "y\\ny\\n" | pacman -Scc'
@@ -96,5 +96,5 @@ docker rmi archtest
 
 echo "Approving filesystem..."
 mv $UNTEST ${UNTEST/untested/${IMGTAG}}
-xz --compress --extreme --threads=0 ${UNTEST/untested/${IMGTAG}}
+xz --compress --force -7e --threads=0 ${UNTEST/untested/${IMGTAG}}
 

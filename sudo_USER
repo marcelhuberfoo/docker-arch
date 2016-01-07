@@ -1,0 +1,2 @@
+USER ALL=(ALL) ALL
+Defaults:USER !authenticate,!pam_session,env_reset
