@@ -1,7 +1,7 @@
 FROM scratch
 MAINTAINER Marcel Huber <marcelhuberfoo@gmail.com>
 
-ADD arch-rootfs-20151111-4.2.5-1.tar.xz /
+ADD arch-rootfs-20160107-4.3.3-2.tar.xz /
 
 USER root
 
@@ -10,19 +10,21 @@ RUN mkdir -p /usr/local/bin && \
     curl -o /usr/local/bin/gosu -sSL https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 && \
     chmod +x /usr/local/bin/gosu
 
-ENV UID=654321 \
-    GID=654321 \
-    UNAME=docky \
-    GNAME=docky \
+RUN pacman -Syy && \
+    printf "\\ny\\ny\\n" | pacman -S sudo vim-minimal && \
+    printf "y\\ny\\n" | pacman -Scc && rm -f /var/lib/pacman/sync/*.db
+
+ENV EDITOR=vim \
+    UNAME=nobody \
+    GNAME=nobody \
     LANG=en_US.utf8
-# add non root user as convenience
-RUN groupadd -g $GID $GNAME && \
-    useradd --uid $UID --gid $GID --key UMASK=0002 --create-home --comment "docker user" $UNAME
-USER $UNAME
-# remove section which disables executing the script in non-interactive mode
-RUN sed -ri -e '/If not.*/ d' -e '/\*i\*/ d' $HOME/.bashrc
-RUN echo -e "umask 0002\ncd \$HOME\n" >> $HOME/.bashrc
-USER root
+
+# prepare non root user
+RUN mkdir /$UNAME && usermod --home /$UNAME $UNAME
+RUN sed -r -e '/If not.*/ d' -e '/\*i\*/ d' /etc/skel/.bashrc >$UNAME/.bashrc && ln -s -r $UNAME/.bashrc $UNAME/.bash_profile && echo -e "umask 0002\ncd \$HOME\n" >> $UNAME/.bashrc
+RUN chown -R $UNAME:$GNAME /$UNAME
+ADD sudo_USER /etc/sudoers.d/$UNAME
+RUN sed -i "s|USER|$UNAME|" /etc/sudoers.d/$UNAME && chmod 0440 /etc/sudoers.d/$UNAME
 
 CMD ["/bin/bash"]
 
