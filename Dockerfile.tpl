@@ -7,7 +7,7 @@ USER root
 
 # allow use of gosu to execute commands as different user
 RUN mkdir -p /usr/local/bin && \
-    curl -o /usr/local/bin/gosu -sSL https://github.com/tianon/gosu/releases/download/1.7/gosu-amd64 && \
+    curl -o /usr/local/bin/gosu -sSL https://github.com/tianon/gosu/releases/download/1.9/gosu-amd64 && \
     chmod +x /usr/local/bin/gosu
 
 RUN pacman -Syy && \
