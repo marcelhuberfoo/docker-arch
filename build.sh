@@ -14,6 +14,7 @@ sudo ./mkimage-arch.sh ${IMGTAG}
 
 # update the Dockerfile with the latest build "number"
 sed "s/TAG/${IMGTAG}/" Dockerfile.tpl > Dockerfile
+sudo chown $(id --user):$(id --group) arch-rootfs-${IMGTAG}.tar.xz
 
 # commit the changes
 git add Dockerfile arch-rootfs-${IMGTAG}.tar.xz && git commit -m "Update Dockerfile and rootfs (${IMGTAG})" || true
