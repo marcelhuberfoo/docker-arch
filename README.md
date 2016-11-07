@@ -1,18 +1,19 @@
-# ArchLinux Container [![](https://badge.imagelayers.io/marcelhuberfoo/arch.svg)](https://imagelayers.io/?images=marcelhuberfoo/arch 'Get your own badge on imagelayers.io')
+# ArchLinux Container [![](https://images.microbadger.com/badges/version/marcelhuberfoo/arch.svg)](https://microbadger.com/images/marcelhuberfoo/arch "Get your own version badge on microbadger.com")
 
-Docker build for a basic [Arch Linux docker image][archimage] with gosu. I update the container regularly.
+Docker build for a basic [Arch Linux docker image][archimage] with [`gosu`][gosu].
 
 This image is built from scratch.
 
 ## Purpose
 
-This docker image is build from scratch with a minimal [Arch Linux][archlinux] installation.
+This docker image is build from scratch with a somewhat minimal [Arch Linux][archlinux] installation containing `systemd`.
 It provides several key features:
 
-* A non-root user and group `docky` for executing programs inside the container.
-* A umask of 0002 for user `docky`.
-* Exported variables `UNAME`, `GNAME`, `UID` and `GID` to make use of the user settings from within scripts.
-* Timezone (`/etc/localtime`) is linked to `Europe/Zurich`, adjust if required in a derived image.
+* Non-root user and group `nobody` for executing programs inside the container.
+* nobody  - even using `sudo`.
+* [`gosu`][gosu] to execute binaries as different user forwarding container signals.
+* A umask of 0002 for user `nobody`.
+* Exported variables `UNAME` and `GNAME` to make use of the user settings from within scripts.
 
 ## Usage
 
@@ -23,52 +24,38 @@ docker run --interactive --tty --rm marcelhuberfoo/arch env
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 HOSTNAME=935562be7aff
 TERM=xterm
-UID=654321
-GID=654321
-UNAME=docky
-GNAME=docky
-LANG=en_US.utf8
+UNAME=nobody
+GNAME=nobody
 HOME=/root
 ```
 
 ## Permissions
 
-This image provides a user and group `docky` to run programs as user `docky`. It is best used with [`gosu`][gosu], as it allows to handle signals of the started process properly within the container.
+This image provides a user and group `nobody` to run programs as user `nobody`. It is best used with [`gosu`][gosu], as it allows to handle signals of the started process properly within the container.
 
-If you map in a volume, permissions on the host folder must allow user or group `docky` to write to it. I recommend adding at least a group `docky` with GID of `654321` to your host system and change the group of the folder to `docky`. Don't forget to add yourself to the `docky` group.
-The user `docky` has a `UID` of `654321` and a `GID` of `654321` which should not interfere with existing ids on regular Linux systems.
+If you map in a volume, permissions on the host folder must allow user or group `nobody` to write to it. You can add yourself to the `nobody` group.
 
-Add user and group docky, group might be sufficient:
+Add yourself to the nobody group:
 ```bash
-groupadd -g 654321 docky
-useradd --system --uid 654321 --gid docky --shell '/sbin/nologin' docky
-```
-
-Add yourself to the docky group:
-```bash
-gpasswd --add myself docky
+gpasswd --add myself nobody
 ```
 
 Set group permissions to the entire project directory:
 ```bash
 chmod -R g+w /tmp/my-data
-chgrp -R docky /tmp/my-data
+chgrp -R nobody /tmp/my-data
 ```
 
-## systemd - *not yet functional*
-
-**Note:** It is not yet possible to use systemd with this container due to docker limitations (at least with versions <= 1.6.2). *Therefor, the package `systemd` is not installed.*
-
-### If it worked
+## systemd
 
 Enabled services would be started in your container if run with something like:
 
 ```bash
 docker run --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-       marcelhuberfoo/arch /usr/lib/systemd/systemd
+       --entrypoint /lib/systemd/systemd marcelhuberfoo/arch
 ```
 
-To stop the container, you could execute ``systemctl poweroff``.
+To stop the container, you could execute ``docker exec -ti <containerid> systemctl poweroff``.
 
 [archlinux]: https://www.archlinux.org
 [gosu]: https://github.com/tianon/gosu

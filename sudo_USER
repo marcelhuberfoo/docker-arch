@@ -1,2 +1,3 @@
-USER ALL=(ALL) ALL
+Cmnd_Alias UTILS = /usr/sbin/nice, /usr/sbin/kill, /usr/sbin/renice, /usr/sbin/pkill, /usr/sbin/top, /usr/sbin/systemctl, /usr/sbin/pacman
+USER ALL=(ALL) PASSWD: ALL, NOPASSWD: UTILS
 Defaults:USER !authenticate,!pam_session,env_reset
